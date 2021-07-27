@@ -1,6 +1,6 @@
 const canvas = document.querySelector("canvas");
 canvas.width = 400;
-canvas.height = innerHeight - 10;
+canvas.height = innerHeight;
 
 const canvasW = canvas.width;
 const canvasH = canvas.height;
@@ -82,15 +82,26 @@ function spawnEnemy() {
       const x = Math.floor(Math.random() * (canvasW - carW - 1) + 1);
       const velocity = {
         x: 0,
-        y: speed,
+        y: Math.floor(Math.random() * (7 - 1) + 1),
       };
-      enemies.push(new Enemy(x, 0, velocity));
+
+      let flag = 0;
+      for (let i = 0; i < enemies.length; i++) {
+        if (
+          enemies[i].x >= Math.abs(x - enemyW) &&
+          enemies[i].x <= x + enemyW
+        ) {
+          flag = 1;
+        }
+      }
+      if (enemies.length === 0 || flag === 0)
+        enemies.push(new Enemy(x, -30, velocity));
     }, 500);
   }
 }
 
 function roadDivider() {
-  for (i = 0; i <= 5; i++) {
+  for (i = 0; i <= 20; i++) {
     ctx.beginPath();
     ctx.rect(dividerX, dividerY + i * 115, dividerW, dividerH);
     ctx.fillStyle = "white";
@@ -170,12 +181,12 @@ function drawCar() {
 }
 
 function setVariables() {
-  speed = 5;
+  speed = 4;
 
   carW = 30;
   carH = 60;
   carX = canvasW / 2 - carW / 2;
-  carY = canvasH - carH;
+  carY = canvasH - carH - 20;
 
   upPressed = false;
   downPressed = false;
