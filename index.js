@@ -23,7 +23,6 @@ let carX,
   enemyH,
   score = 0,
   enemyInterval,
-  gameInterval,
   carImg,
   enemyCarImg;
 
@@ -34,7 +33,7 @@ roadDivider();
 initCarImg();
 drawCar();
 initEnemyImg();
-spawnEnemy();
+// spawnEnemy();
 setVariables();
 // startGame();
 
@@ -52,10 +51,9 @@ function loadGame() {
 }
 
 class Enemy {
-  constructor(x, y, color, velocity) {
+  constructor(x, y, velocity) {
     this.x = x;
     this.y = y;
-    this.color = color;
     this.velocity = velocity;
   }
   update() {
@@ -81,19 +79,18 @@ function initEnemyImg() {
 function spawnEnemy() {
   if (!enemyInterval) {
     enemyInterval = setInterval(() => {
-      const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
       const x = Math.floor(Math.random() * (canvasW - carW - 1) + 1);
       const velocity = {
         x: 0,
-        y: 5,
+        y: speed,
       };
-      enemies.push(new Enemy(x, 0, color, velocity));
+      enemies.push(new Enemy(x, 0, velocity));
     }, 500);
   }
 }
 
 function roadDivider() {
-  for (i = 0; i <= 6; i++) {
+  for (i = 0; i <= 5; i++) {
     ctx.beginPath();
     ctx.rect(dividerX, dividerY + i * 115, dividerW, dividerH);
     ctx.fillStyle = "white";
@@ -102,47 +99,48 @@ function roadDivider() {
   }
 }
 
+function animate() {
+  animationId = requestAnimationFrame(animate);
+  ctx.clearRect(0, 0, canvasW, canvasH);
+
+  dividerY += speed;
+  if (dividerY > 100) dividerY = -10;
+
+  if (upPressed) carY -= speed;
+  if (downPressed) carY += speed;
+  if (rightPressed) carX += speed;
+  if (leftPressed) carX -= speed;
+
+  if (carX < 0) carX = 0;
+  if (carX > canvasW - carW) carX = canvasW - carW;
+  if (carY < 0) carY = 0;
+  if (carY > canvasH - carH) carY = canvasH - carH;
+
+  roadDivider();
+  drawCar();
+  carNavigation();
+  enemies.forEach((enemy, index) => {
+    //// Remove Enemy Car When crossed Canvas Height
+    if (enemy.y > canvasH) {
+      enemies.splice(index, 1);
+      score += 1;
+      document.getElementById("scoreId").innerHTML = score;
+    }
+    ///// collision Detection
+    if (
+      carX < enemy.x + enemyW &&
+      carX + carW > enemy.x &&
+      carY < enemy.y + enemyH &&
+      carY + carH > enemy.y
+    ) {
+      gameOver();
+    }
+    enemy.update();
+  });
+}
+
 function startGame() {
-  if (!gameInterval) {
-    gameInterval = setInterval(() => {
-      ctx.clearRect(0, 0, canvasW, canvasH);
-
-      dividerY += speed;
-      if (dividerY > 100) dividerY = 0;
-
-      if (upPressed) carY -= speed;
-      if (downPressed) carY += speed;
-      if (rightPressed) carX += speed;
-      if (leftPressed) carX -= speed;
-
-      if (carX < 0) carX = 0;
-      if (carX > canvasW - carW) carX = canvasW - carW;
-      if (carY < 0) carY = 0;
-      if (carY > canvasH - carH) carY = canvasH - carH;
-
-      roadDivider();
-      drawCar();
-      carNavigation();
-      enemies.forEach((enemy, index) => {
-        //// Remove Enemy Car When crossed Canvas Height
-        if (enemy.y > canvasH) {
-          enemies.splice(index, 1);
-          score += 1;
-          document.getElementById("scoreId").innerHTML = score;
-        }
-        ///// collision Detection
-        if (
-          carX < enemy.x + enemyW &&
-          carX + carW > enemy.x &&
-          carY < enemy.y + enemyH &&
-          carY + carH > enemy.y
-        ) {
-          gameOver();
-        }
-        enemy.update();
-      });
-    }, 20);
-  }
+  animate();
 }
 
 function gameOver() {
@@ -150,12 +148,11 @@ function gameOver() {
   document.getElementById("scoreId").innerHTML = score;
   document.getElementById("finalScore").innerHTML = score;
   score = 0;
-  clearInterval(gameInterval);
+  cancelAnimationFrame(animationId);
   clearInterval(enemyInterval);
   enemyInterval = null;
-  gameInterval = null;
   enemies.splice(0, enemies.length);
-  roadDivider();
+  // roadDivider();
   setVariables();
   //   drawCar();
 }
