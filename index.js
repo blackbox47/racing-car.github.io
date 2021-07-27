@@ -82,7 +82,7 @@ function spawnEnemy() {
       const x = Math.floor(Math.random() * (canvasW - carW - 1) + 1);
       const velocity = {
         x: 0,
-        y: Math.floor(Math.random() * (7 - 1) + 1),
+        y: Math.floor(Math.random() * (7 - 3) + 3),
       };
 
       let flag = 0;
